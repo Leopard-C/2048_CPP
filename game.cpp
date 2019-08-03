@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 Game::Game(int _prob/*=6*/, int _scrLeft/*=4*/, int _scrTop/*=4*/) 
 	: prob(_prob) , scrLeft(_scrLeft), scrTop(_scrTop) 
@@ -13,19 +14,28 @@ Game::Game(int _prob/*=6*/, int _scrLeft/*=4*/, int _scrTop/*=4*/)
 	// initialize ncurses lib
 	initscr();
 	keypad(stdscr, true);
-	start_color();
 
-	init_pair(COLOR_2,    COLOR_WHITE,   COLOR_BLACK);
-	init_pair(COLOR_4,    COLOR_YELLOW,  COLOR_BLACK);
-	init_pair(COLOR_8,    COLOR_GREEN,   COLOR_BLACK);
-	init_pair(COLOR_16,   COLOR_CYAN,    COLOR_BLACK);
-	init_pair(COLOR_32,   COLOR_BLUE,    COLOR_BLACK);
-	init_pair(COLOR_64,   COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(COLOR_128,  COLOR_RED,     COLOR_BLACK);
-	init_pair(COLOR_256,  COLOR_WHITE,   COLOR_GREEN);
-	init_pair(COLOR_512,  COLOR_WHITE,   COLOR_YELLOW);
-	init_pair(COLOR_1024, COLOR_WHITE,   COLOR_MAGENTA);
-	init_pair(COLOR_2048, COLOR_WHITE,   COLOR_RED);	
+	if (has_colors()) {
+		printGrids = &Game::printGridsWithColor;
+
+		start_color();
+
+		/* init_pair(number, foreground_color, background_color)  */
+		init_pair(COLOR_2,    COLOR_WHITE,   COLOR_BLACK);
+		init_pair(COLOR_4,    COLOR_YELLOW,  COLOR_BLACK);
+		init_pair(COLOR_8,    COLOR_CYAN,   COLOR_BLACK);
+		init_pair(COLOR_16,   COLOR_BLUE,    COLOR_BLACK);
+		init_pair(COLOR_32,   COLOR_MAGENTA,    COLOR_BLACK);
+		init_pair(COLOR_64,   COLOR_RED, COLOR_BLACK);
+		init_pair(COLOR_128,  COLOR_WHITE,     COLOR_GREEN);
+		init_pair(COLOR_256,  COLOR_WHITE,   COLOR_YELLOW);
+		init_pair(COLOR_512,  COLOR_WHITE,   COLOR_BLUE);
+		init_pair(COLOR_1024, COLOR_WHITE,   COLOR_MAGENTA);
+		init_pair(COLOR_2048, COLOR_WHITE,   COLOR_RED);	
+	}
+	else {
+		printGrids = &Game::printGridsWithNoColor;
+	}
 }
 
 Game::~Game() {
@@ -34,7 +44,9 @@ Game::~Game() {
 
 
 // print grids (refresh)
-void Game::printGrids()
+// no color 
+// if the terminal deesn't support color, call this function
+void Game::printGridsWithNoColor()
 {
 	int i = scrTop, j = scrLeft;
 
@@ -76,6 +88,8 @@ void Game::printGrids()
 	mvprintw(i++, j, "+ ------ + ------ + ------ + ------ +");
 }
 
+
+// print grids with color
 void Game::printGridsWithColor() {
 	int i = scrTop, j = scrLeft;
 		
@@ -83,11 +97,11 @@ void Game::printGridsWithColor() {
 	// if the map[row][col] is zero, doesn't print it 
 	auto printNum = [&](int scrRow, int scrCol, int mapRow){
 		auto loadColor = [&](int mapRow, int mapCol, COLOR c){
-			attron(COLOR_PAIR(c));
 			mvprintw(scrRow, scrCol + 1 + mapCol * 9, "  ");
+			attron(COLOR_PAIR(c));		// start color
 			mvprintw(scrRow, scrCol + 3 + mapCol * 9, "%4d", map[mapRow][mapCol]);
+			attroff(COLOR_PAIR(c));		// end color
 			mvprintw(scrRow, scrCol + 7 + mapCol * 9, "  |");
-			attroff(COLOR_PAIR(c));
 		};
 		
 		mvprintw(scrRow, scrCol, "|");
@@ -96,6 +110,7 @@ void Game::printGridsWithColor() {
 			default:
 				break;
 			case 0:
+				mvprintw(scrRow, scrCol + 1 + mapCol * 9, "        |");
 				break;
 			case 2:
 				loadColor(mapRow, mapCol, COLOR_2);
@@ -151,11 +166,10 @@ void Game::printGridsWithColor() {
 	printNum(i++, j, 3);
 	mvprintw(i++, j, "|        |        |        |        |");
 	mvprintw(i++, j, "+ ------ + ------ + ------ + ------ +");
-
 }
 
 // generate the number 2 or 4
-// prob: the probablity of generate 2		range:(0, 10]
+// prob: the probability of generate 2		range:(0, 10]
 int Game::generateNewNum(Direction direction, int prob) {
 	srand((unsigned int)time(NULL));
 
@@ -168,15 +182,16 @@ int Game::generateNewNum(Direction direction, int prob) {
 	if (prob > 10)
 		prob = 10;
 
+	// generate 2 or 4 by probability
 	int base[10] = { 0 };
 	for (int i = 0; i < prob; ++i)
 		base[i] = 2;
 	for (int i = prob; i < 10; ++i)
 		base[i] = 4;
 	
-	num = base[num % 10];
+	num = base[random() % 10];
 
-	// judge the arrow-direction the use press 
+	// judge the arrow-direction the use pressed 
 	switch (direction) {
 		default:
 			break;
@@ -241,54 +256,66 @@ int Game::generateNewNum(Direction direction, int prob) {
 }
 
 
-// paly game, press 'Up, Down, Left, Right-arrow' key
-bool Game::move() {
+// move: press 'Up, Down, Left, Right-arrow' key
+Status Game::move() {
 	int key;
 	key = getch();
 	
+	bool ret = false;
+
 	switch(key) {
 		case KEY_UP:		// UP
-			//direction = moveUp();
-			moveUp();
+			ret = moveUp();
 			break;
 		case KEY_DOWN:		// Down
-			//direction = moveDown();
-			moveDown();
+			ret = moveDown();
 			break;
 		case KEY_LEFT:		// Left
-			//direction = moveLeft();
-			moveLeft();
+			ret = moveLeft();
 			break;
 		case KEY_RIGHT:		// Right
-			//direction = moveRight();
-			moveRight();
+			ret = moveRight();
 			break;
 		case KEY_ESC:
-			return false;
-			break;
+			return SExit;			// exit the game
+		case KEY_S:
+			return SSave;
 	}
-	
-	refresh();
-	return true;
+
+	if (ret) {	
+		refresh();
+		return SContinue;	// continue
+	}
+	else
+		return SError;
 }
 
-int Game::moveDown() {
+// press down-arrow key
+bool Game::moveDown() {
 	int row, col, tmp;
+	bool moved = false;
 	for (col = 0; col < 4; ++col) {
 		int n = 4;
 		while (n--) {
 			for (row = 3; row > 0; --row) {
 				if (map[row][col] == 0) {
 					for (tmp = row; tmp > 0; --tmp) {
+						if (map[tmp-1][col] == 0)
+							continue;
 						map[tmp][col] = map[tmp-1][col];
 						map[tmp-1][col] = 0;
+						moved = true;												// !!!
 					}
 				}
 			}
 		}
+
+		// merge adgacent and identical numbers
 		for (row = 3; row > 0; --row) {
-			if (map[row][col] == map[row-1][col]) {
+			if (map[row][col] == map[row-1][col] && map[row][col] != 0) {
+				moved = true;														// !!!
 				map[row][col] *= 2;
+				map[row-1][col] = 0;
 				for (tmp = row - 1; tmp > 0; --tmp) {
 					map[tmp][col] = map[tmp-1][col];
 					map[tmp-1][col] = 0;
@@ -296,28 +323,40 @@ int Game::moveDown() {
 			}
 		}
 	}
-	generateNewNum(DDown, prob);
+
+	if (moved) {
+		generateNewNum(DDown, prob);
+		return true;
+	}
+	else
+		return false;
 }
 
 // press right-arrow key
-int Game::moveRight() {
+bool Game::moveRight() {
 	int row, col, tmp;
+	bool moved = false;
 	for (row = 0; row < 4; ++row) {
 		int n = 4;
 		while (n--) {
 			for (col = 3; col > 0; --col) {
 				if (map[row][col] == 0) {
 					for (tmp = col; tmp > 0; --tmp) {
+						if (map[row][tmp-1] == 0)
+							continue;
 						map[row][tmp] = map[row][tmp-1];
 						map[row][tmp-1] = 0;
+						moved = true;
 					}
 				}
 			}
 		}
 
 		for (col = 3; col > 0; --col) {
-			if (map[row][col] == map[row][col-1]) {
+			if (map[row][col] == map[row][col-1] && map[row][col] != 0) {
+				moved = true;
 				map[row][col] *= 2;
+				map[row][col-1] = 0;
 				for (tmp = col - 1; tmp > 0; --tmp) {
 					map[row][tmp] = map[row][tmp-1];
 					map[row][tmp-1] = 0;
@@ -326,28 +365,40 @@ int Game::moveRight() {
 		}
 	}
 	
-	generateNewNum(DRight, prob);
+	if (moved) {
+		generateNewNum(DRight, prob);
+		return true;
+	}
+	else
+		return false;
 }
 
-int Game::moveLeft() {
+// press left-arrow key
+bool Game::moveLeft() {
 	int row, col, tmp;
+	bool moved = false;
+	
 	for (row = 0; row < 4; ++row) {
-		int n = 4;
-		
+		int n = 4;		
 		while (n--) {
 			for (col = 0; col < 3; ++col) {
 				if (map[row][col] == 0) {
 					for (tmp = col; tmp < 3; ++tmp) {
+						if (map[row][tmp+1] == 0)
+							continue;
 						map[row][tmp] = map[row][tmp+1];
 						map[row][tmp+1] = 0;
+						moved = true;
 					}
 				}
 			}
 		}
 
 		for (col = 0; col < 3; ++col) {
-			if (map[row][col] == map[row][col+1]) {
+			if (map[row][col] == map[row][col+1] && map[row][col] != 0) {
+				moved = true;
 				map[row][col] *= 2;
+				map[row][col+1] = 0;
 				for (tmp = col + 1; tmp < 3; ++tmp) {
 					map[row][tmp] = map[row][tmp+1];
 					map[row][tmp+1] = 0;
@@ -356,29 +407,39 @@ int Game::moveLeft() {
 		}
 	}
 
-	generateNewNum(DLeft, prob);
+	if (moved) {
+		generateNewNum(DLeft, prob);
+		return true;
+	}
+	else
+		return false;
 }
 
 // press up-arrow key 
-int Game::moveUp() {
+bool Game::moveUp() {
 	int row, col, tmp;
+	bool moved = false;
 	for (col = 0; col < 4; ++col) {
 		int n = 4;
 		while(n--) {
 			for (row = 0; row < 3; ++row) {
 				if (map[row][col] == 0) {
 					for (tmp = row; tmp < 3; ++tmp) {
+						if (map[tmp+1][col] == 0) 
+							continue;
 						map[tmp][col] = map[tmp+1][col];
 						map[tmp+1][col] = 0;
+						moved = true;
 					}
 				}
 			}
 		}
 
 		for (row = 0; row < 3; ++row) {
-			if (map[row][col] == map[row+1][col]) {
+			if (map[row][col] == map[row+1][col] && map[row][col] != 0) {
+				moved = true;
 				map[row][col] *= 2;
-				//map[row+1][col] = 0;
+				map[row+1][col] = 0;
 				for (tmp = row + 1; tmp < 3; ++tmp) {
 					map[tmp][col] = map[tmp+1][col];
 					map[tmp+1][col] = 0;
@@ -386,18 +447,36 @@ int Game::moveUp() {
 			}
 		}
 	}
-	generateNewNum(DUp, prob);
+
+	if (moved) {
+		generateNewNum(DUp, prob);
+		return true;
+	}
+	else
+		return false;
 }
 
+// print important infomation during game
 void Game::printInfo(Status s) {
+	auto print  = [&](const char* str){
+		mvprintw(scrTop + 18, 1, str);
+	};
+
 	switch (s) {
 	case SWin:
-		mvprintw(scrTop + 18, 1, "Congratulations!!!");	
+		print("Congratulations!!!");	
 		break;
 	case SLose:
-		mvprintw(scrTop + 18, 1, "Game Over!");	
+		print("Game Over!");	
 		break;
 	case SExit:
+		print("Press any key to leave the game");
+		break;
+	case SError:
+		print("Please try another direction!");
+		break;
+	case SSave:
+		print("Saved!");
 		break;
 	}
 }
@@ -441,33 +520,85 @@ Status Game::judge() {
 	return SLose;
 }
 
-void Game::play() {
+void Game::play(const char* inputFile, const char* outputFile) {
+	if (inputFile && (strlen(inputFile) != 0)) {
+		load(inputFile);
+	}
+
 	generateNewNum(DNull, prob);
 	clear();						// function to clear the screen ( provided by ncurses lib)
-	printGridsWithColor();
+	(this->*printGrids)();
 	
-	while (true) {		
-		if (!move()) {
+	Status status;
+	while (true) {
+		status = move();
+		if (status == SExit) {
 			printInfo(SExit);
 			break;
 		}
-		clear();
-		printGridsWithColor();
-		
-		// 判断游戏是否继续
-		if (judge() == SWin) {
-			printInfo(SWin);
-			break;
+		else if (status == SError) {
+			printInfo(SError);
 		}
-		else if (judge() == SLose) {
-			printInfo(SLose);
-			break;
+		else if (status == SSave) {
+			if (outputFile && (strlen(outputFile) != 0)) {
+				if (save(outputFile))
+					printInfo(SSave);
+			}
+			else {
+				if (save("data"))
+					printInfo(SSave);
+			}
 		}
-		else{
-			continue;
+		else {					// SContinue
+			clear();
+			(this->*printGrids)();
+
+			// 判断游戏是否继续
+			if (judge() == SWin) {
+				printInfo(SWin);
+				break;
+			}
+			else if (judge() == SLose) {
+				printInfo(SLose);
+				break;
+			}
+			else{
+				continue;
+			}
 		}
 	}
 
 	getch();
 }
 
+// save the current sense 
+bool Game::save(const char* filename) {
+	FILE* fp = fopen(filename, "w+");
+
+	if (!fp) 
+		return false;
+	
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			fprintf(fp, "%4d ", map[i][j]);
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+
+	return true;
+}
+
+// load game from file
+bool Game::load(const char* filename) {
+	FILE* fp = fopen(filename, "r");
+
+	if (!fp) 
+		return false;
+
+	for (int i = 0; i < 4; ++i) {
+		fscanf(fp, "%d %d %d %d", &map[i][0], &map[i][1], &map[i][2], &map[i][3]);
+	}
+
+	return true;
+}
