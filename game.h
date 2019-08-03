@@ -12,7 +12,15 @@
 #define KEY_S     0163  /* S key, save file*/
 
 typedef enum _Direction { DNull=0, DUp, DDown, DLeft, DRight } Direction;
-typedef enum _Status		{ SContinue = 0, SError, SExit, SSave, SWin, SLose } Status;
+typedef enum _Status		{ 
+	SContinue = 0, 
+	SError,				// invalid key beyond arrow-key, s-key and esc-key.
+	SDirError,		// invalid arrow-key.
+	SExit, 
+	SSave, 
+	SWin, 
+	SLose 
+} Status;
 typedef enum _Color {
 	COLOR_2 = 1,
 	COLOR_4,   COLOR_8,   COLOR_16,  COLOR_32,   COLOR_64,

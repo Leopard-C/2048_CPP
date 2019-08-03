@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 }
 
 void analyse(int argc, char* argv[]) {
-	const char* const short_opts = "hi:o:p";
+	const char* const short_opts = "hi:o:p:";
 	const struct option long_opts[] =
 	{
 		{ "help",        0, NULL, 'h' },
@@ -53,9 +53,7 @@ void analyse(int argc, char* argv[]) {
 				sscanf(optarg, "%d", &prob);
 				break;
 			case 'i':
-				printf("%s\n", optarg);
 				strcpy(inputFile, optarg);
-				printf("%s\n", inputFile);
 				break;
 			case '?':					// unknown option
 			default:
@@ -72,5 +70,6 @@ void printUsageInfo(ostream& os, int exit_code)
 	os << " -h --help: Display this usage information " << endl;
 	os << " -o --output filename: Save game sense to file" << endl;
 	os << " -i --input filename: Load game from file" << endl;
+	os << " -p --prob number: Set the probability of generate 2, range in (0, 10]" << endl;
 	exit(exit_code);
 }

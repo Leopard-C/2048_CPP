@@ -280,6 +280,8 @@ Status Game::move() {
 			return SExit;			// exit the game
 		case KEY_S:
 			return SSave;
+		default:
+			return SError;
 	}
 
 	if (ret) {	
@@ -287,7 +289,7 @@ Status Game::move() {
 		return SContinue;	// continue
 	}
 	else
-		return SError;
+		return SDirError;
 }
 
 // press down-arrow key
@@ -472,8 +474,11 @@ void Game::printInfo(Status s) {
 	case SExit:
 		print("Press any key to leave the game");
 		break;
-	case SError:
+	case SDirError:
 		print("Please try another direction!");
+		break;
+	case SError:
+		print("Invalid key! Please press arrow-key, s-key or esc-key");
 		break;
 	case SSave:
 		print("Saved!");
@@ -536,6 +541,9 @@ void Game::play(const char* inputFile, const char* outputFile) {
 			printInfo(SExit);
 			break;
 		}
+		else if (status == SDirError) {
+			printInfo(SDirError);
+		}
 		else if (status == SError) {
 			printInfo(SError);
 		}
@@ -578,6 +586,8 @@ bool Game::save(const char* filename) {
 	if (!fp) 
 		return false;
 	
+	fprintf(fp, "%d\n", prob);
+
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
 			fprintf(fp, "%4d ", map[i][j]);
@@ -595,6 +605,8 @@ bool Game::load(const char* filename) {
 
 	if (!fp) 
 		return false;
+
+	fscanf(fp, "%d", &prob);
 
 	for (int i = 0; i < 4; ++i) {
 		fscanf(fp, "%d %d %d %d", &map[i][0], &map[i][1], &map[i][2], &map[i][3]);
