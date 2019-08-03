@@ -1,10 +1,10 @@
 # 2048_CPP
-Game 2048 written in C++
-Run on linux. NOT WINDOWS !!!
+Game 2048 written in C++ (Linux Only)  
+Run on linux. NOT WINDOWS !!!  
 
 ## 一、依赖项
-本程序只能在`Linux`平台运行，依赖`ncurses`库
-暗转`ncurses`库：
+本程序只能在`Linux`平台运行，依赖`ncurses`库  
+安装`ncurses`库：
 ```bash
 sudo apt install libncurses5-dev
 ```
@@ -16,13 +16,12 @@ make
 ```
 
 ### 2. 执行
-使用：
-Usage:./out options [filename]
-	-h --help: Display this usage information 
-	-o --output filename: Save game sense to file
-	-i --input filename: Load game from file
-	-p --prob number: Set the probability of generate 2, range in (0, 10]
-			)
+使用：  
+Usage:./out options [filename]  
+	-h --help: Display this usage information   
+	-o --output filename: Save game sense to file  
+	-i --input filename: Load game from file  
+	-p --prob number: Set the probability of generate 2, range in (0, 10]   
 ```bash
 # 直接运行，默认产生方块2的概率为0.6，保存游戏的文件名为`data`
 ./out
@@ -41,15 +40,15 @@ Usage:./out options [filename]
 
 
 ### 4. 效果图
-正常游戏：
-![2048_0](img/2048_0.png)
-保存游戏：(按‘S’键)
-![2048_SAVE](img/2048_SAVE.png)
-退出游戏：(按‘ESC’键)、
-![2048_ESC](img/2048_ESC.png)
-无效方向键
-![2048_DIRERROR](img/2048_DIRERROR.png)
-无效键
-![2048_ERROR](img/2048_ERROR.png)
+正常游戏：  
+![2048_0](img/2048_0.png)  
+保存游戏：(按‘S’键)  
+![2048_SAVE](img/2048_SAVE.png)  
+退出游戏：(按‘ESC’键)  
+![2048_ESC](img/2048_ESC.png)  
+无效方向键   
+![2048_DIRERROR](img/2048_DIRERROR.png)  
+无效键  
+![2048_ERROR](img/2048_ERROR.png)  
 
 
