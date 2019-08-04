@@ -13,6 +13,7 @@ Game::Game(int _prob/*=6*/, int _scrLeft/*=4*/, int _scrTop/*=4*/)
 	memset(map, 0, sizeof(map));
 	// initialize ncurses lib
 	initscr();
+	noecho();			// echo off
 	keypad(stdscr, true);
 
 	if (has_colors()) {
@@ -23,11 +24,11 @@ Game::Game(int _prob/*=6*/, int _scrLeft/*=4*/, int _scrTop/*=4*/)
 		/* init_pair(number, foreground_color, background_color)  */
 		init_pair(COLOR_2,    COLOR_WHITE,   COLOR_BLACK);
 		init_pair(COLOR_4,    COLOR_YELLOW,  COLOR_BLACK);
-		init_pair(COLOR_8,    COLOR_CYAN,   COLOR_BLACK);
+		init_pair(COLOR_8,    COLOR_CYAN,    COLOR_BLACK);
 		init_pair(COLOR_16,   COLOR_BLUE,    COLOR_BLACK);
-		init_pair(COLOR_32,   COLOR_MAGENTA,    COLOR_BLACK);
-		init_pair(COLOR_64,   COLOR_RED, COLOR_BLACK);
-		init_pair(COLOR_128,  COLOR_WHITE,     COLOR_GREEN);
+		init_pair(COLOR_32,   COLOR_MAGENTA, COLOR_BLACK);
+		init_pair(COLOR_64,   COLOR_RED,     COLOR_BLACK);
+		init_pair(COLOR_128,  COLOR_WHITE,   COLOR_GREEN);
 		init_pair(COLOR_256,  COLOR_WHITE,   COLOR_YELLOW);
 		init_pair(COLOR_512,  COLOR_WHITE,   COLOR_BLUE);
 		init_pair(COLOR_1024, COLOR_WHITE,   COLOR_MAGENTA);

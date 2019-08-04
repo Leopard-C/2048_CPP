@@ -28,12 +28,12 @@ int main(int argc, char* argv[]) {
 }
 
 void analyse(int argc, char* argv[]) {
-	const char* const short_opts = "hi:o:p:";
+	const char* const short_opts = ":hi:o:p:";
 	const struct option long_opts[] =
 	{
 		{ "help",        0, NULL, 'h' },
 		{ "output",      1, NULL, 'o' },
-		{ "probability", 0, NULL, 'p' },
+		{ "probability", 1, NULL, 'p' },
 		{ "input",       1, NULL, 'i' },
 		{ NULL,          0, NULL,  0  }
 	};
@@ -55,8 +55,13 @@ void analyse(int argc, char* argv[]) {
 			case 'i':
 				strcpy(inputFile, optarg);
 				break;
+			case ':':					// parameter is missing
+				cerr <<  program_name <<  ": option '-" << (char)optopt << "' require an argument" << endl;
+				printUsageInfo(cerr, 1);
+				break;
 			case '?':					// unknown option
 			default:
+				cerr << program_name << ": option '-" << (char)optopt << "' is invalid: ignored" << endl;
 				printUsageInfo(cerr, 1);
 				break;
 		}
