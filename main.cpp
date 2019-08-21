@@ -73,7 +73,7 @@ void printUsageInfo(ostream& os, int exit_code)
 {
 	os << "Usage:" << program_name << " options [filename]" << endl;
 	os << " -h --help: Display this usage information " << endl;
-	os << " -o --output filename: Save game sense to file" << endl;
+	os << " -o --output filename: Save game scene to file" << endl;
 	os << " -i --input filename: Load game from file" << endl;
 	os << " -p --prob number: Set the probability of generate 2, range in (0, 10]" << endl;
 	exit(exit_code);
