@@ -492,7 +492,7 @@ Status Game::judge() {
 	// win 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			if (map[i][i] == 2048) {
+			if (map[i][j] == 2048) {
 				return SWin;
 			}
 		}
